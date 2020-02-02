@@ -1,0 +1,18 @@
+<!doctype html>
+<title>MovieLens External Rec</title>
+
+{% if recs %}
+<h1>These are the top 10 recommendations for User{{user}}:</h1>
+
+<ul>
+{% for movieId in recs %}
+  <li>MovieId: {{ movieId }}</li>
+{% endfor %}
+</ul>
+{% else %}
+  <h1>Sorry, we don't have any information for User{{user}} yet.</h1>
+  <h1>Please enter a new userId!</h1>
+  <form method="POST" action=/manage_link>
+  <input type="number" name="userId"><br>
+  <button type="submit" name="inputButton">Display Recommendation</button>
+{% endif %}
