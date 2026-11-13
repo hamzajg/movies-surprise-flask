@@ -1,39 +1,36 @@
-FROM python:3.6-slim-buster
+FROM python:3.13-slim
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update -y --no-install-recommends && \
-  apt-get install -y --no-install-recommends locales && \
-  locale-gen en_US.UTF-8 && \
-  apt-get install -y --no-install-recommends software-properties-common && \
-  apt-get install -y --no-install-recommends \
-        make \
-        automake \
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
+
+RUN apt-get update -y && \
+    apt-get install -y --no-install-recommends \
+        locales \
+        build-essential \
+        gfortran \
+        libboost-program-options-dev \
         libpq-dev \
         libffi-dev \
-        gfortran \
-        g++ \
-        git \
-        libboost-program-options-dev \
-        libtool \
         libxrender1 \
-        wget \
-        ca-certificates \
+        git \
         curl && \
-  apt-get clean -y && \
-  rm -rf /var/lib/apt/lists/*
-#ENV PYTHONUNBUFFERED=0
+    sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
+    locale-gen && \
+    apt-get clean -y && \
+    rm -rf /var/lib/apt/lists/*
+
 COPY ./requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
 RUN pip install scikit-surprise
+
 ADD . /app
 WORKDIR /app
 COPY ./docker-entrypoint.sh /
 RUN chmod a+x /docker-entrypoint.sh
 
-#RUN adduser -D user
-#RUN adduser --disabled-password user
-#USER user
+# Trains the KNN model at build time so the container starts ready to serve.
 RUN python -u ./src/build.py
+
 EXPOSE 12345
-
-
-# ENTRYPOINT ["/docker-entrypoint.sh"]

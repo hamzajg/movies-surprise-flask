@@ -17,8 +17,8 @@ docker run --rm -it -p 12345:12345 movies-surprise-flask sh
 cd src && python -u server.py
 ```
 
-The base image is `python:3.6-slim-buster`, which is end-of-life; the build
-still works, but a newer Python is the obvious next change.
+The base image is `python:3.13-slim`. The build trains the KNN model, which takes
+a couple of minutes.
 
 ## Run it locally
 
