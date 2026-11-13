@@ -14,6 +14,17 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  image:
+    name: Build the image
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: docker build
+        # Same build the README documents, including the build-time KNN training.
+        run: docker build -t movies-surprise-flask:ci .
+
   smoke:
     name: Import and serve (Python 3.13)
     runs-on: ubuntu-latest
