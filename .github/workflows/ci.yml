@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Import and serve (Python 3.13)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          # scikit-surprise is deliberately not in requirements.txt (it needs a
+          # compiler), but the service cannot import without it. The Dockerfile
+          # installs it the same way.
+          pip install scikit-surprise
+
+      - name: Import the service and request the index route
+        working-directory: src
+        run: |
+          python - <<'PY'
+          import server
+
+          # The module builds the Flask app at import time, so reaching this
+          # point already proves the model dump and the helpers load.
+          routes = sorted(rule.rule for rule in server.app.url_map.iter_rules())
+          assert "/" in routes, routes
+          assert "/score" in routes, routes
+
+          response = server.app.test_client().get("/")
+          assert response.status_code == 200, response.status_code
+
+          print("routes:", routes)
+          print("GET / ->", response.status_code)
+          PY
