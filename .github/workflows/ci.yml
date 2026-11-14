@@ -62,3 +62,9 @@ jobs:
           print("routes:", routes)
           print("GET / ->", response.status_code)
           PY
+
+      - name: Install pytest
+        run: pip install pytest
+
+      - name: Unit tests
+        run: python -m pytest tests/ -q
