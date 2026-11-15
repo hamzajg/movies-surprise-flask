@@ -36,6 +36,9 @@ locally.
 - `src/api.py` was removed — a broken, unreferenced form-based variant of
   `/score`. `server.py` is the only entrypoint.
 - `src/top_n_recommendations.py` — top-N helpers shared by both servers.
+- `src/similarity.py` — item-item cosine similarity + movie/user lookup
+  over `ml-latest-small/` CSVs; backs `/similar` and `/explain` with no
+  Surprise dependency.
 - `src/build.py` — trains and dumps a model (`surprise.dump`).
 - `src/MovieLens.py` — loads `src/ml-latest-small/` (committed dataset).
 - `src/templates/` — the request form.
@@ -50,7 +53,12 @@ locally.
 | Method | Path | Body | Response |
 |---|---|---|---|
 | POST | `/score` | `{"source": {"id": "<model>"}, "movieIds": [...], "predictedRatings"/`user+`candidateIds` per `request_test_1.json` | top-10 `{movieId, predicted rating}` list |
+| POST | `/retrieve`, `/rank` | same body as `/score` | movieIds only |
+| POST | `/similar` | `{"movieId"|"movieIds": [...], "limit"?}` | item-item neighbors `{movieId, title, genres, similarity}` |
+| POST | `/explain` | `{"movieId"|"movieIds": [...], "userId"?, "limit"?}` | neighbors + user's rating on each (citations) |
 | GET | `/` | — | HTML request form |
+| GET | `/api/?userid=N` | — | top-10 recs |
+| POST | `/recs`, `/manage_link` | form fields | JSON recs / redirect |
 
 See `src/request_test_1.json` for a ready-made request (user 20,
 candidates 1–299 excluding 3,4, limit 15).
