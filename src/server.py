@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for, abort
 from flask import render_template
 from flask import request, jsonify
 from top_n_recommendations import get_top_n, get_all_recs
+from similarity import similar_movies, movie_info, user_rating
 from collections import defaultdict
 import os
 from surprise import dump
@@ -174,6 +175,79 @@ def recommend_from_param():
         response_list['movieIds'].append(rec[0])
         print(response_list)
     return jsonify(response_list)
+
+
+def _explain_params():
+    """Parse and validate the JSON body for /similar and /explain.
+
+    Returns (movie_ids, user_id_or_none, limit); aborts 400 on bad input.
+    """
+    body = request.get_json(silent=True)
+    if not isinstance(body, dict):
+        abort(400, description='JSON body with movieId(s) and limit is required')
+    try:
+        limit = int(body.get('limit', 5))
+    except (TypeError, ValueError):
+        abort(400, description='limit must be an integer')
+    movie_ids = body.get('movieIds')
+    if movie_ids is None:
+        movie_ids = [body['movieId']] if 'movieId' in body else []
+    if not isinstance(movie_ids, list) or not movie_ids:
+        abort(400, description='movieId or movieIds must be a non-empty list')
+    try:
+        movie_ids = [int(m) for m in movie_ids]
+    except (TypeError, ValueError):
+        abort(400, description='movieIds must be integers')
+    user_id = body.get('userId')
+    if user_id is not None:
+        try:
+            user_id = int(user_id)
+        except (TypeError, ValueError):
+            abort(400, description='userId must be an integer')
+    return movie_ids, user_id, limit
+
+
+@app.route('/similar', methods=['POST'])
+def similar():
+    """Item-item neighbors for one or more movies — the "why" behind a rec."""
+    movie_ids, _, limit = _explain_params()
+    response = {'source': {'id': 'movielens-item-item'}, 'movies': []}
+    for mid in movie_ids:
+        info = movie_info(mid)
+        entry = {
+            'movieId': mid,
+            'title': info['title'] if info else None,
+            'similar': similar_movies(mid, limit=limit),
+        }
+        response['movies'].append(entry)
+    return jsonify(response)
+
+
+@app.route('/explain', methods=['POST'])
+def explain():
+    """Explain recommendations by citing similar movies the user has rated.
+
+    For each requested movie: its similar neighbors, annotated with the
+    user's rating on each neighbor (the citation) and the user's rating of
+    the movie itself. No Surprise model involved — pure dataset citation.
+    """
+    movie_ids, user_id, limit = _explain_params()
+    response = {'source': {'id': 'movielens-item-item'}, 'explanations': []}
+    for mid in movie_ids:
+        info = movie_info(mid)
+        similar = []
+        for s in similar_movies(mid, limit=limit):
+            entry = dict(s)
+            if user_id is not None:
+                entry['userRating'] = user_rating(user_id, s['movieId'])
+            similar.append(entry)
+        response['explanations'].append({
+            'movieId': mid,
+            'title': info['title'] if info else None,
+            'userRating': user_rating(user_id, mid) if user_id is not None else None,
+            'similar': similar,
+        })
+    return jsonify(response)
 
 
 @app.route('/manage_link', methods=['POST'])
