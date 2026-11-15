@@ -27,6 +27,9 @@ via Docker.
    `request.get_json`. Rationale: the form predates the JSON API; merging
    them is possible but was deferred — flagged here so it's a known
    duplication, not an accident.
+   *Superseded 2026-11-15:* `api.py` was removed — it was unreferenced and
+   broken (`algo` undefined, wrong dump name). `server.py` is the only
+   entrypoint.
 5. **Training is an offline script (`build.py`).** Models are produced by
    running `build.py` against `MovieLens.py`/`ml-latest-small`, then
    committing the dump. Rationale: separates the slow training path from
