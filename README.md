@@ -50,10 +50,10 @@ curl -s -X POST http://localhost:12345/score \
 }
 ```
 
-`GET /` renders a small form for the same request. `api.py` is a second,
-form-based version of the endpoint (`request.form` instead of `request.get_json`,
-and it filters by `candidateIds`); `server.py` is the JSON one the Docker
-instructions start.
+`GET /` renders a small form for the same request. `server.py` is the
+single served entrypoint — an earlier form-based variant (`api.py`) was
+removed: it was unreferenced, used a different (broken) model dump name,
+and crashed on `algo` being undefined.
 
 `src/request_test_1.json` is a ready-made request: user 20, candidates 1–299,
 excluding 3 and 4, limit 15.
@@ -78,7 +78,6 @@ The trained dumps are committed so the service starts without training:
 Dockerfile, docker-entrypoint.sh   image build and the (unused) entrypoint
 requirements.txt                   Flask, pandas, numpy, CouchDB client
 src/server.py                      JSON /score, port 12345
-src/api.py                         form-based /score
 src/build.py                       trains and dumps a model
 src/top_n_recommendations.py       top-N helpers
 src/templates/                     the request form

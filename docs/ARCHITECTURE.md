@@ -11,7 +11,6 @@ client (curl / browser form)
 src/server.py  (Flask, port 12345 — app built at import)
    ├─ loads committed Surprise dumps from src/
    ├─ src/top_n_recommendations.py  scoring helpers
-   └─ src/api.py  alternate form-based variant (not the entrypoint)
         │
         ▼
 pre-trained dumps: SVD_model, SVD_model_couchDB, KNNBasic_model_couchDB
@@ -35,12 +34,10 @@ src/build.py trains via MovieLens.py + ml-latest-small/ → surprise.dump
   and `MovieLens.py` when (re)training.
 - `src/request_test_1.json` — canonical smoke-test payload.
 
-## Variants
+## Entrypoint
 
-- `server.py` — JSON API, the Docker/CI path.
-- `api.py` — form-encoded variant with `candidateIds` filtering; kept for
-  the HTML form flow. Two endpoints, one concept — consolidation is a
-  possible future cleanup, not done yet (KISS: don't break the form).
+- `server.py` — the only served variant (JSON `/score` + HTML form).
+  The former `api.py` form variant was removed as dead, broken code.
 
 ## Deployment
 

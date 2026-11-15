@@ -33,8 +33,8 @@ locally.
 
 - `src/server.py` — the JSON API (`POST /score`, `GET /` form) on port
   12345; **builds the Flask app at import time** and loads model dumps.
-- `src/api.py` — a second, form-based variant of `/score`
-  (`request.form`, filters by `candidateIds`). Not the served entrypoint.
+- `src/api.py` was removed — a broken, unreferenced form-based variant of
+  `/score`. `server.py` is the only entrypoint.
 - `src/top_n_recommendations.py` — top-N helpers shared by both servers.
 - `src/build.py` — trains and dumps a model (`surprise.dump`).
 - `src/MovieLens.py` — loads `src/ml-latest-small/` (committed dataset).
@@ -53,8 +53,7 @@ locally.
 | GET | `/` | — | HTML request form |
 
 See `src/request_test_1.json` for a ready-made request (user 20,
-candidates 1–299 excluding 3,4, limit 15). `api.py`'s form variant uses
-`request.form` + `candidateIds` — different input shape, same output idea.
+candidates 1–299 excluding 3,4, limit 15).
 
 ## Conventions
 
@@ -74,8 +73,8 @@ candidates 1–299 excluding 3,4, limit 15). `api.py`'s form variant uses
   it separately or imports fail.
 - Model dumps are binary and committed — regenerating them changes large
   files; only recommit dumps when intentionally retraining.
-- `api.py` and `server.py` are two variants of the same endpoint — check
-  which one Docker/CI actually exercises (`server.py`) before editing.
+- `server.py` is the only served entrypoint — `api.py` was removed as
+  dead/broken code.
 - Docker image trains at build time (slow build, ~minutes) — that's
   intentional so the container needs no training step at runtime.
 - `CouchDB` in requirements hints at a legacy data source for
