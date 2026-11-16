@@ -5,7 +5,17 @@ import sys
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-from explain import reasons_for
+from explain import reasons_for, user_rating_map
+
+
+class _FakeTrainset:
+    def all_ratings(self):
+        return [(20, 1, 4.5), (20, 2, 3.0), (7, 1, 5.0)]
+
+
+def test_user_rating_map_groups_by_user():
+    ratings = user_rating_map(_FakeTrainset())
+    assert ratings == {20: {1: 4.5, 2: 3.0}, 7: {1: 5.0}}
 
 
 def test_reasons_only_include_rated_movies():
