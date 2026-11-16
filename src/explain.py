@@ -19,7 +19,7 @@ _NEIGHBOR_POOL = 50
 def user_rating_map(trainset):
     """{userId: {movieId: rating}} from a fitted Surprise Trainset."""
     out = {}
-    for uid, mid, rating, _est in trainset.raw_ratings():
+    for uid, mid, rating in trainset.all_ratings():
         out.setdefault(uid, {})[mid] = rating
     return out
 
@@ -33,6 +33,8 @@ def reasons_for(user_ratings, movie_id, limit=3):
     never an error — when the user rated none of the neighbors.
     """
     rated = user_ratings or {}
+    if limit <= 0:
+        return []
     reasons = []
     for s in similar_movies(movie_id, limit=_NEIGHBOR_POOL):
         user_rating = rated.get(s["movieId"])

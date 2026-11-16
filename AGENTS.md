@@ -56,6 +56,7 @@ locally.
 | POST | `/retrieve`, `/rank` | same body as `/score` | movieIds only |
 | POST | `/similar` | `{"movieId"|"movieIds": [...], "limit"?}` | item-item neighbors `{movieId, title, genres, similarity}` |
 | POST | `/explain` | `{"movieId"|"movieIds": [...], "userId"?, "limit"?}` | neighbors + user's rating on each (citations) |
+| POST | `/explain-recs` | `/score` body + `"explainLimit"?` (default 3) | score contract + `explanations[]` with `reasons` citing similar movies the user rated (model-trainset ratings) |
 | GET | `/` | — | HTML request form |
 | GET | `/api/?userid=N` | — | top-10 recs |
 | POST | `/recs`, `/manage_link` | form fields | JSON recs / redirect |

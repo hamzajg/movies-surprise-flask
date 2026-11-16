@@ -3,6 +3,7 @@ from flask import render_template
 from flask import request, jsonify
 from top_n_recommendations import get_top_n, get_all_recs
 from similarity import similar_movies, movie_info, user_rating
+from explain import user_rating_map, reasons_for
 from collections import defaultdict
 import os
 from surprise import dump
@@ -108,6 +109,49 @@ def rank():
         if (rec[0] in candidate_ids) and (rec[0] not in exclude_ids):
             response_list['movieIds'].append(rec[0])
     return jsonify(response_list)
+
+@app.route('/explain-recs', methods=['POST'])
+def explain_recs():
+    """/score response plus per-movie reason citations, in one call.
+
+    Same body as /score plus optional `explainLimit` (default 3). Each
+    explanation cites the similar movies the requesting user rated —
+    ratings come from the model trainset's own user space (ml-100k),
+    not the latest-small citation table (see
+    specs/explained-recommendations/SPEC.md → Decisions).
+    """
+    user_id, candidate_ids, exclude_ids, limit = _recommendation_params()
+    body = request.get_json(silent=True)
+    try:
+        explain_limit = int(body.get('explainLimit', 3))
+    except (TypeError, ValueError, AttributeError):
+        abort(400, description='explainLimit must be an integer')
+
+    _, loaded_algo = dump.load(os.path.expanduser('./SVD_model_couchDB'))
+    trainset = loaded_algo.trainset
+    user_ratings = user_rating_map(trainset).get(user_id, {})
+    predictions_loaded_algo = loaded_algo.test(trainset.build_testset())
+    recs = get_all_recs(predictions_loaded_algo).get(user_id, [])
+    response_list = {'source': {'id': 'SVD_model'}, 'movieIds': [], 'predictedRatings': [], 'explanations': []}
+
+    for rec in recs:
+        if (len(response_list['movieIds']) >= limit):
+            break
+        if (rec[0] in candidate_ids) and (rec[0] not in exclude_ids):
+            response_list['predictedRatings'].append({
+                'movieId': rec[0],
+                'predicted rating': rec[1]
+            })
+            response_list['movieIds'].append(rec[0])
+            info = movie_info(rec[0])
+            response_list['explanations'].append({
+                'movieId': rec[0],
+                'title': info['title'] if info else None,
+                'predictedRating': rec[1],
+                'reasons': reasons_for(user_ratings, rec[0], limit=explain_limit),
+            })
+    return jsonify(response_list)
+
 
 '''
 A HTML page that displays recommendations for a user.
