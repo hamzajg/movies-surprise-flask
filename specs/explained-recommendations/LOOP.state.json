@@ -1,0 +1,26 @@
+{
+  "feature": "explained-recommendations",
+  "status": "running",
+  "iterations": 0,
+  "updated": "2026-11-16T15:39:32Z",
+  "waves": {
+    "1": {
+      "status": "in-progress",
+      "branch": "feat/explained-recommendations-w1",
+      "pr": "\u2014",
+      "evidence": "\u2014",
+      "updated": "2026-11-16T15:39:32Z"
+    }
+  },
+  "gates": {
+    "G1": {
+      "status": "met",
+      "evidence": "specs/explained-recommendations/SPEC.md Decisions records endpoint shape: POST /explain-recs reuses /score body + option",
+      "updated": "2026-11-16T15:39:31Z"
+    }
+  },
+  "events": [
+    "2026-11-16T15:39:31Z gate G1 met: specs/explained-recommendations/SPEC.md Decisions records endpoint shape: POST /explain-recs reuses /score body + option",
+    "2026-11-16T15:39:32Z start wave 1 on feat/explained-recommendations-w1"
+  ]
+}
