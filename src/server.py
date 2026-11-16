@@ -7,7 +7,6 @@ from collections import defaultdict
 import os
 from surprise import dump
 from surprise import SVD
-from surprise import Dataset
 
 app = Flask(__name__)
 
@@ -44,9 +43,8 @@ def score():
     user_id, candidate_ids, exclude_ids, limit = _recommendation_params()
 
     # load data and model
-    data = Dataset.load_builtin('ml-100k')
-    trainset = data.build_full_trainset()
     _, loaded_algo = dump.load(os.path.expanduser('./SVD_model_couchDB'))
+    trainset = loaded_algo.trainset
     print("file loaded")
     predictions_loaded_algo = loaded_algo.test(trainset.build_testset())
     recs = get_all_recs(predictions_loaded_algo).get(user_id, [])
@@ -73,9 +71,8 @@ def retrieve():
     user_id, candidate_ids, exclude_ids, limit = _recommendation_params()
 
     # load data and model, get recommendations
-    data = Dataset.load_builtin('ml-100k')
-    trainset = data.build_full_trainset()
     _, loaded_algo = dump.load(os.path.expanduser('./SVD_model_couchDB'))
+    trainset = loaded_algo.trainset
     print("file loaded")
     predictions_loaded_algo = loaded_algo.test(trainset.build_testset())
     recs = get_all_recs(predictions_loaded_algo).get(user_id, [])
@@ -97,9 +94,8 @@ def rank():
     user_id, candidate_ids, exclude_ids, limit = _recommendation_params()
 
     # load data and model, get recommendations
-    data = Dataset.load_builtin('ml-100k')
-    trainset = data.build_full_trainset()
     _, loaded_algo = dump.load(os.path.expanduser('./SVD_model_couchDB'))
+    trainset = loaded_algo.trainset
     print("file loaded")
     predictions_loaded_algo = loaded_algo.test(trainset.build_testset())
     recs = get_all_recs(predictions_loaded_algo).get(user_id, [])
@@ -125,9 +121,8 @@ def recommend_from_form():
         limit = int(request.form['limit'])
     except (KeyError, TypeError, ValueError):
         abort(400, description='userId and limit are required integers')
-    data = Dataset.load_builtin('ml-100k')
-    trainset = data.build_full_trainset()
     _, loaded_algo = dump.load(os.path.expanduser('./SVD_model_couchDB'))
+    trainset = loaded_algo.trainset
     print("file loaded")
 
     predictions_loaded_algo = loaded_algo.test(trainset.build_testset())
@@ -156,9 +151,8 @@ def recommend_from_param():
         user_id = int(request.args['userid'])
     except (KeyError, TypeError, ValueError):
         abort(400, description='userid is a required integer')
-    data = Dataset.load_builtin('ml-100k')
-    trainset = data.build_full_trainset()
     _, loaded_algo = dump.load(os.path.expanduser('./SVD_model_couchDB'))
+    trainset = loaded_algo.trainset
     print("file loaded")
 
     predictions_loaded_algo = loaded_algo.test(trainset.build_testset())
